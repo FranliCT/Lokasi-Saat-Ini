@@ -1,4 +1,4 @@
-package com.example.mapsfranli;
+package com.example.mapsfran;
 
 import android.util.Log;
 

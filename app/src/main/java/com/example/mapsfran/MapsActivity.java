@@ -1,4 +1,4 @@
-package com.example.mapsfranli;
+package com.example.mapsfran;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -7,15 +7,12 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.pm.PackageManager;
-import android.location.Address;
-import android.location.Geocoder;
 import android.location.Location;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.View;
-import android.widget.EditText;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -31,13 +28,10 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.example.mapsfranli.databinding.ActivityMapsBinding;
-
-import java.io.IOException;
-import java.util.List;
+import com.example.mapsfran.databinding.ActivityMapsBinding;
 
 public class MapsActivity extends FragmentActivity implements
-        OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks,
+        OnMapReadyCallback,GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
         LocationListener {
 
@@ -50,15 +44,13 @@ public class MapsActivity extends FragmentActivity implements
     Marker mCurrLocationMarker;
     double latitude, longitude;
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            checkLocationPermission();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
+            checkLocationPermissions();
         }
-
 
         binding = ActivityMapsBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
@@ -68,7 +60,6 @@ public class MapsActivity extends FragmentActivity implements
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
     }
-
 
     /**
      * Manipulates the map once available.
@@ -83,19 +74,19 @@ public class MapsActivity extends FragmentActivity implements
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
 
+        // Add a marker in Sydney and move the camera
         mMap.getUiSettings().setMyLocationButtonEnabled(true);
         mMap.getUiSettings().setZoomControlsEnabled(true);
         mMap.getUiSettings().setCompassEnabled(true);
         mMap.getUiSettings().setMapToolbarEnabled(true);
 
-        if (ContextCompat.checkSelfPermission( this,
-                Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             buildGoogleApiClient();
             mMap.setMyLocationEnabled(true);
         }
     }
+    protected synchronized void buildGoogleApiClient() {
 
-    protected synchronized void buildGoogleApiClient(){
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
@@ -103,28 +94,28 @@ public class MapsActivity extends FragmentActivity implements
                 .build();
         mGoogleApiClient.connect();
     }
+    public static int MY_PERMISSIONS_REQUEST_LOCATION = 99;
 
-    public static final int MY_PERMISSIONS_REQUEST_LOCATION = 99;
-    public boolean checkLocationPermission(){
-        if (ContextCompat.checkSelfPermission(this,
-                Manifest.permission.ACCESS_FINE_LOCATION)
-                 != PackageManager.PERMISSION_GRANTED) {
+    public boolean checkLocationPermissions(){
+        if (ContextCompat.checkSelfPermission(this,Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED){
 
+            //ASKIING
             if(ActivityCompat.shouldShowRequestPermissionRationale(this,
                     Manifest.permission.ACCESS_FINE_LOCATION)) {
                 ActivityCompat.requestPermissions(this,
-                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                        new  String[]{Manifest.permission.ACCESS_FINE_LOCATION},
                         MY_PERMISSIONS_REQUEST_LOCATION);
-            } else {
+            } else{
                 ActivityCompat.requestPermissions(this,
                         new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
                         MY_PERMISSIONS_REQUEST_LOCATION);
             }
             return false;
-        } else {
-            return false;
+        } else  {
+            return true;
         }
     }
+
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
@@ -137,7 +128,6 @@ public class MapsActivity extends FragmentActivity implements
                 == PackageManager.PERMISSION_GRANTED) {
             LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
         }
-
     }
 
     @Override
@@ -151,9 +141,10 @@ public class MapsActivity extends FragmentActivity implements
     }
 
     @Override
-    public void onLocationChanged(@NonNull Location location) {
+    public void onLocationChanged(Location location) {
         Log.d("onLocationChanged", "entered");
 
+        mLastLocation = location;
         mLastLocation = location;
         if (mCurrLocationMarker != null) {
             mCurrLocationMarker.remove();
@@ -167,49 +158,20 @@ public class MapsActivity extends FragmentActivity implements
         markerOptions.position(latLng);
         markerOptions.draggable(true);
         markerOptions.title("Current Position");
-        markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_MAGENTA));
+
+        markerOptions.icon(BitmapDescriptorFactory. defaultMarker(BitmapDescriptorFactory.HUE_MAGENTA));
         mCurrLocationMarker = mMap.addMarker(markerOptions);
 
-        //move map camera
+        //move
         mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
         mMap.animateCamera(CameraUpdateFactory.zoomTo(11));
 
-        Toast.makeText(MapsActivity.this, "Your Current Location", Toast.LENGTH_LONG).show();
+        Toast.makeText(MapsActivity.this, "Your Current Locationa", Toast.LENGTH_SHORT).show();
 
-        //stop location updates
-        if (mGoogleApiClient != null) {
+        //stop
+        if (mGoogleApiClient != null){
             LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
-            Log.d("onLocationChanged", "Removing Location Updates");
-        }
-    }
-
-    public void onClick(View v)
-    {
-        if (v.getId() ==R.id.B_search)  {
-            EditText tf_location = (EditText) findViewById(R.id.TF_location);
-            String location = tf_location.getText().toString();
-            List<Address> addressList = null;
-            MarkerOptions markerOptions = new MarkerOptions();
-
-            if(!location.equals("")) {
-                Geocoder geocoder = new Geocoder(this);
-                try{
-                    addressList = geocoder.getFromLocationName(location,5);
-
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
-                for (int i = 0; i< addressList.size(); i++) {
-                    Address myAddress = addressList.get(i);
-                    LatLng latLng = new LatLng(myAddress.getLatitude(), myAddress.getLongitude());
-                    markerOptions.position(latLng);
-                    markerOptions.title("YOUR SEARCH RESULT");
-                    markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE));
-                    mMap.addMarker(markerOptions);
-                    mMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
-                }
-            }
+            Log.d("onLocationChanged" , "Removing Location Updates");
         }
     }
 }

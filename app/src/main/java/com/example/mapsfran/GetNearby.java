@@ -1,4 +1,4 @@
-package com.example.mapsfranli;
+package com.example.mapsfran;
 
 import static com.google.android.gms.maps.CameraUpdateFactory.newLatLng;
 import static com.google.android.gms.maps.CameraUpdateFactory.zoomTo;
@@ -27,7 +27,7 @@ public class GetNearby extends AsyncTask<Object, String, String> {
             Log.d("GetNearbyPlacesData", "doInBackground entered");
             mMap = (GoogleMap) params[0];
             url = (String) params[1];
-            Url downloadUrl = new Url();
+            com.example.mapsfran.Url downloadUrl = new com.example.mapsfran.Url();
             googlePlacesData = downloadUrl.readUrl(url);
             Log.d("GooglePlacesReadTask", "doInBackground Exit");
         } catch (Exception e) {
@@ -40,7 +40,7 @@ public class GetNearby extends AsyncTask<Object, String, String> {
     protected void onPostExecute(String result) {
         Log.d("GooglePlacesReadTask", "onPostExecute Entered");
         List<HashMap<String, String>> nearbyPlacesList = null;
-        com.example.mapsfranli.Parser dataParser = new com.example.mapsfranli.Parser();
+        com.example.mapsfran.Parser dataParser = new Parser();
         nearbyPlacesList =  dataParser.parse(result);
         ShowNearbyPlaces(nearbyPlacesList);
         Log.d("GooglePlacesReadTask", "onPostExecute Exit");
